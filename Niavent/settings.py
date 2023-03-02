@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -24,19 +23,61 @@ SECRET_KEY = "django-insecure-&t@mmg_4x7e^aub5_bc2286cm#4pc$4(9jx^%-pe$@hwq(5k4k
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "stderr": {
+            "level": "ERROR",
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+    },
+    "formatters": {
+        "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["stderr"],
+            "level": "ERROR",
+        },
+    },
+}
 
+
+
+PORT = os.environ.get("PORT", 6000)
+
+DB_NAME = os.getenv("TTODATA_OPS_DB_NAME")
+DB_USER = os.getenv("TTODATA_OPS_DB_USER")
+DB_PASSWORD = os.getenv("TTODATA_OPS_DB_PASSWORD")
+DB_HOST = os.getenv("TTODATA_OPS_DB_HOST")
+DB_PORT = os.getenv("TTODATA_OPS_DB_PORT")
+
+if None in (DB_HOST, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT):
+    raise Exception(
+        "TTODATA_OPS_DB_NAME, TTODATA_OPS_DB_USER, TTODATA_OPS_DB_PASSWORD, TTODATA_OPS_DB_HOST, TTODATA_OPS_DB_PORT -  "
+        "environment vars needed."
+    )
+
+
+if DEPLOYMENT_TIER not in ("dev", "prod"):
+    raise Exception("DEPLOYMENT_TIER environment var needed. Must be 'dev' or 'prod'")
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
 INSTALLED_APPS = [
+    "user.apps.UserConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'rest_framework',
+
+
 ]
 
 MIDDLEWARE = [
@@ -70,17 +111,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "Niavent.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -100,7 +143,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -112,7 +154,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
@@ -122,3 +163,4 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTH_USER_MODEL = "user.User"
